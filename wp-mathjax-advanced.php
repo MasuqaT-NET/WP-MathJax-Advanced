@@ -96,6 +96,7 @@ class MathJax {
 
 		add_action( 'wp_footer', array( __CLASS__, 'add_script' ) );
 		add_action( 'wp_footer', array( __CLASS__, 'unconditional' ) );
+		add_action('wp_footer', array(__CLASS__, 'mj_setting'));
 
 		if ( get_option( 'kblog_mathjax_use_wplatex_syntax' ) ) {
 			add_filter( 'the_content', array( __CLASS__, 'inline_to_shortcode' ) );
@@ -141,40 +142,45 @@ class MathJax {
 		echo ' -->';
 	}
 
-	/*
-	public static function mathjax_shortcode( $atts, $content ) {
-		self::$add_script = true;
-	}
+	const INLINE_START	= '%%$%';
+	const INLINE_END	= '%$%%';
 
-	public static function nomathjax_shortcode( $atts, $content ) {
-		self::$block_script = true;
-	}
-	
-	public static function latex_shortcode( $atts, $content ) {
-		self::$add_script = true;
-
-		// this gives us an optional "syntax" attribute, which defaults to "inline", but can also be "display"
-		$shortcode_atts = shortcode_atts( array( 'syntax' => get_option( 'kblog_mathjax_latex_inline' ) ), $atts );
-
-		if ( 'inline' === $shortcode_atts['syntax'] ) {
-			return '\(' . $content . '\)';
-		} else if ( 'display' === $shortcode_atts['syntax'] ) {
-			return '\[' . $content . '\]';
-		}
-	}
-	*/
+	const BLOCK_START	= '##$#';
+	const BLOCK_END		= '#$##';
 
 	public static function mathjax_inline_shortcode($attr, $content) {
 		self::$add_script = true;
 
-		return '\(' . $content . '\)';
+		if(empty($content)) {
+			return '[mj-i]';
+		}
+
+		return self::INLINE_START . $content . self::INLINE_END;
 	}
 
 	public static function mathjax_block_shortcode($attr, $content)
 	{
 		self::$add_script = true;
 
-		return '\[' . $content . '\]';
+		if(empty($content)){
+			return '[mj-b]';
+		}
+
+		return self::BLOCK_START . $content . self::BLOCK_END;
+	}
+
+	public static function mj_setting()
+	{
+		echo '
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+		tex2jax: {
+			inlineMath	:[[ \'' . self::INLINE_START . '\', \'' . self::INLINE_END . '\']],
+			displayMath	:[[ \'' . self::BLOCK_START . '\', \'' . self::BLOCK_END . '\']]
+		}
+	});
+</script>
+';
 	}
 
 	public static function add_script() {
