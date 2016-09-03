@@ -19,7 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class MathJax_Latex_Admin {
+class WP_MathJax_Advanced_Admin {
 
 	static $admin_tags = array(
 		'input' => array(
@@ -45,7 +45,7 @@ class MathJax_Latex_Admin {
 	}
 
 	function admin_page_init() {
-		add_options_page( 'WP MathJax Advanced', 'WP MathJax Advanced', 'manage_options', 'kblog-mathjax-latex', array( $this, 'plugin_options_menu' ) );
+		add_options_page( 'WP MathJax Advanced', 'WP MathJax Advanced', 'manage_options', 'mjmasuqat-wp-mathjax-advanced', array( $this, 'plugin_options_menu' ) );
 	}
 
 	function plugin_options_menu() {
@@ -56,8 +56,8 @@ class MathJax_Latex_Admin {
 		$this->table_head();
 
 		// save options if this is a valid post
-		if ( isset( $_POST['kblog_mathjax_latex_save_field'] ) && // input var okay
-			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kblog_mathjax_latex_save_field'] ) ), 'kblog_mathjax_latex_save_action' ) // input var okay
+		if ( isset( $_POST['mjmasuqat_wp_mathjax_advanced_save_field'] ) && // input var okay
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mjmasuqat_wp_mathjax_advanced_save_field'] ) ), 'mjmasuqat_wp_mathjax_advanced_save_action' ) // input var okay
 		) {
 			echo "<div class='updated settings-error' id='etting-error-settings_updated'><p><strong>Settings saved.</strong></p></div>\n";
 			$this->admin_save();
@@ -65,66 +65,42 @@ class MathJax_Latex_Admin {
 
 		$checked_force_load = '';
 
-		if ( get_option( 'kblog_mathjax_force_load' ) ) {
+		if ( get_option( 'mjmasuqat_mathjax_force_load' ) ) {
 			$checked_force_load = 'checked="true"';
 		}
 
 		$this->admin_table_row( 'Force Load',
 			'Force the MathJax JavaScript to be loaded on every post. This removes the need to use the [mathjax] shortcode.',
-			"<input type='checkbox' name='kblog_mathjax_force_load' id='kblog_mathjax_force_load' value='1' $checked_force_load />",
+			"<input type='checkbox' name='mjmasuqat_mathjax_force_load' id='mjmasuqat_mathjax_force_load' value='1' $checked_force_load />",
 			''
 		);
 
-		$selected_inline  = get_option( 'kblog_mathjax_latex_inline' ) === 'inline' ? 'selected="true"' : '';
-		$selected_display = get_option( 'kblog_mathjax_latex_inline' ) === 'display' ? 'selected="true"' : '';
+		$selected_inline  = get_option( 'mjmasuqat_wp_mathjax_advanced_inline' ) === 'inline' ? 'selected="true"' : '';
+		$selected_display = get_option( 'mjmasuqat_wp_mathjax_advanced_inline' ) === 'display' ? 'selected="true"' : '';
 
-		$syntax_input = <<<EOT
-<select name="kblog_mathjax_latex_inline" id="kblog_mathjax_latex_inline">
-<option value="inline" $selected_inline>Inline</option>
-<option value="display" $selected_display>Display</option>
-</select>
-EOT;
-
-		$this->admin_table_row( 'Default [latex] syntax attribute.',
-			"By default, the [latex] shortcode renders equations using the MathJax 'inline' syntax.",
-			$syntax_input,
-			'kblog_mathjax_latex_inline'
-		);
-
-		$wp_latex_disabled         = method_exists( 'WP_LaTeX', 'init' ) ? "disabled='disable'" : '';
-		$wp_latex_disabled_warning = method_exists( 'WP_LaTeX', 'init' ) ? 'Disable wp-latex to use this syntax.' : '';
-
-		$use_wp_latex_syntax = get_option( 'kblog_mathjax_use_wplatex_syntax', false ) ? "checked='true'" : '';
-
-		$this->admin_table_row( 'Use wp-latex syntax?',
-			"Allows use of the \$latex$ syntax, but conflicts with wp-latex. $wp_latex_disabled_warning",
-			"<input type='checkbox' name='kblog_mathjax_use_wplatex_syntax' id='kblog_mathjax_use_wplatex_syntax' $wp_latex_disabled $use_wp_latex_syntax value='1'/>",
-			'kblog_mathjax_use_wplatex_syntax'
-		);
-
-		$use_cdn = get_option( 'kblog_mathjax_use_cdn', true ) ? 'checked="true"' : '';
+		$use_cdn = get_option( 'mjmasuqat_mathjax_use_cdn', true ) ? 'checked="true"' : '';
 
 		$this->admin_table_row( 'Use MathJax CDN Service?',
 			'Allows use of the MathJax hosted content delivery network. By using this, you are agreeing to the  <a href="http://www.mathjax.org/download/mathjax-cdn-terms-of-service/">MathJax CDN Terms of Service</a>.',
-			"<input type='checkbox' name='kblog_mathjax_use_cdn' id='use_cdn' value='1' $use_cdn/>",
+			"<input type='checkbox' name='mjmasuqat_mathjax_use_cdn' id='use_cdn' value='1' $use_cdn/>",
 			'use_cdn'
 		);
 
-		$custom_location_disabled = get_option( 'kblog_mathjax_use_cdn', true ) ? 'disabled="disabled"' : '';
-		$custom_location          = "value='" . esc_attr( get_option( 'kblog_mathjax_custom_location', '' ) ) . "'";
+		$custom_location_disabled = get_option( 'mjmasuqat_mathjax_use_cdn', true ) ? 'disabled="disabled"' : '';
+		$custom_location          = "value='" . esc_attr( get_option( 'mjmasuqat_mathjax_custom_location', '' ) ) . "'";
 
 		$this->admin_table_row( 'Custom MathJax location?',
 			'If you are not using the MathJax CDN enter the location of your MathJax script.',
-			"<input type='textbox' name='kblog_mathjax_custom_location' id='kblog_mathjax_custom_location' $custom_location $custom_location_disabled>",
-			'kblog_mathjax_custom_location'
+			"<input type='textbox' name='mjmasuqat_mathjax_custom_location' id='mjmasuqat_mathjax_custom_location' $custom_location $custom_location_disabled>",
+			'mjmasuqat_mathjax_custom_location'
 		);
 
 		$options = $this->config_options();
 
-		$select_string = "<select name='kblog_mathjax_config' id='kblog_mathjax_config'>\n";
+		$select_string = "<select name='mjmasuqat_mathjax_config' id='mjmasuqat_mathjax_config'>\n";
 
 		foreach ( $options as $i ) {
-			$selected = get_option( 'kblog_mathjax_config', 'default' ) === $i ? "selected='true'" : '';
+			$selected = get_option( 'mjmasuqat_mathjax_config', 'default' ) === $i ? "selected='true'" : '';
 			$select_string .= "<option value='$i' " . esc_attr( $selected ) . ">$i</option>\n";
 		}
 
@@ -133,7 +109,7 @@ EOT;
 		$this->admin_table_row( 'MathJax Configuration',
 			"See the <a href='http://docs.mathjax.org/en/v1.1-latest/configuration.html#loading'>MathJax documentation</a> for more details.",
 			$select_string,
-			'kblog_mathjax_config'
+			'mjmasuqat_mathjax_config'
 		);
 
 		$this->table_foot();
@@ -152,40 +128,32 @@ EOT;
 
 	function admin_save() {
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			check_ajax_referer( 'kblog_mathjax_latex_save_field', 'security' );
+			check_ajax_referer( 'mjmasuqat_wp_mathjax_advanced_save_field', 'security' );
 		}
 
-		update_option( 'kblog_mathjax_force_load', array_key_exists( 'kblog_mathjax_force_load', $_POST ) ); // input var okay
+		update_option( 'mjmasuqat_mathjax_force_load', array_key_exists( 'mjmasuqat_mathjax_force_load', $_POST ) ); // input var okay
 
-		if ( array_key_exists( 'kblog_mathjax_latex_inline', $_POST ) && isset( $_POST['kblog_mathjax_latex_inline'] ) && // input var okay
-			in_array( sanitize_text_field( wp_unslash( $_POST['kblog_mathjax_latex_inline'] ) ), array( 'inline', 'display' ), true ) // input var okay
+		update_option( 'mjmasuqat_mathjax_use_cdn', array_key_exists( 'mjmasuqat_mathjax_use_cdn', $_POST ) ); // input var okay
+
+		if ( array_key_exists( 'mjmasuqat_mathjax_custom_location', $_POST ) && isset( $_POST['mjmasuqat_mathjax_custom_location'] ) ) { // input var okay
+			update_option( 'mjmasuqat_mathjax_custom_location', esc_url_raw( wp_unslash( $_POST['mjmasuqat_mathjax_custom_location'] ) ) ); // input var okay
+		}
+
+		if ( array_key_exists( 'mjmasuqat_mathjax_config', $_POST ) && isset( $_POST['mjmasuqat_mathjax_config'] ) && // input var okay
+			in_array( sanitize_text_field( wp_unslash( $_POST['mjmasuqat_mathjax_config'] ) ), $this->config_options(), true ) // input var okay
 		) {
-			update_option( 'kblog_mathjax_latex_inline', sanitize_text_field( wp_unslash( $_POST['kblog_mathjax_latex_inline'] ) ) ); // input var okay
-		}
-
-		update_option( 'kblog_mathjax_use_wplatex_syntax', array_key_exists( 'kblog_mathjax_use_wplatex_syntax', $_POST ) ); // input var okay
-
-		update_option( 'kblog_mathjax_use_cdn', array_key_exists( 'kblog_mathjax_use_cdn', $_POST ) ); // input var okay
-
-		if ( array_key_exists( 'kblog_mathjax_custom_location', $_POST ) && isset( $_POST['kblog_mathjax_custom_location'] ) ) { // input var okay
-			update_option( 'kblog_mathjax_custom_location', esc_url_raw( wp_unslash( $_POST['kblog_mathjax_custom_location'] ) ) ); // input var okay
-		}
-
-		if ( array_key_exists( 'kblog_mathjax_config', $_POST ) && isset( $_POST['kblog_mathjax_config'] ) && // input var okay
-			in_array( sanitize_text_field( wp_unslash( $_POST['kblog_mathjax_config'] ) ), $this->config_options(), true ) // input var okay
-		) {
-			update_option( 'kblog_mathjax_config', sanitize_text_field( wp_unslash( $_POST['kblog_mathjax_config'] ) ) ); // input var okay
+			update_option( 'mjmasuqat_mathjax_config', sanitize_text_field( wp_unslash( $_POST['mjmasuqat_mathjax_config'] ) ) ); // input var okay
 		}
 	}
 
 	function table_head() {
 		?>
-		<div class='wrap' id='mathjax-latex-options'>
+		<div class='wrap' id='wp-mathjax-advanced-options'>
 			<h2>WP MathJax Advanced</h2>
-			<form id='mathjaxlatex' name='mathjaxlatex' action='' method='POST'>
-				<?php wp_nonce_field( 'kblog_mathjax_latex_save_action', 'kblog_mathjax_latex_save_field', true ); ?>
+			<form id='wpmathjaxadvanced' name='wpmathjaxadvanced' action='' method='POST'>
+				<?php wp_nonce_field( 'mjmasuqat_wp_mathjax_advanced_save_action', 'mjmasuqat_wp_mathjax_advanced_save_field', true ); ?>
 			<table class='form-table'>
-			<caption class='screen-reader-text'>The following lists configuration options for the MathJax-LaTeX plugin.</caption>
+			<caption class='screen-reader-text'>The following lists configuration options for the WP MathJax Advanced plugin.</caption>
 		<?php
 	}
 
@@ -204,7 +172,7 @@ EOT;
 			}
 			// enable or disable the cdn input field when checking/unchuecking the "use cdn" checkbox
 			var cdn_check = $('#use_cdn'),
-			cdn_location = $('#kblog_mathjax_custom_location');
+			cdn_location = $('#mjmasuqat_mathjax_custom_location');
 
 			cdn_check.change(function() {
 				var checked = cdn_check.is(':checked');
@@ -230,11 +198,11 @@ EOT;
 	}
 } // class
 
-function mathjax_latex_admin_init() {
-	global $mathjax_latex_admin;
-	$mathjax_latex_admin = new MathJax_Latex_Admin();
+function wp_mathjax_advanced_admin_init() {
+	global $wp_mathjax_advanced_admin;
+	$wp_mathjax_advanced_admin = new WP_MathJax_Advanced_Admin();
 }
 
 if ( is_admin() ) {
-	mathjax_latex_admin_init();
+	wp_mathjax_advanced_admin_init();
 }
