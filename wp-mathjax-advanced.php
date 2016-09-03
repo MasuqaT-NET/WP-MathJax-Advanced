@@ -1,15 +1,10 @@
 <?php
 /*
- Plugin Name: MathJax-LaTeX
+ Plugin Name: WP MathJax Advanced
  Description: Transform latex equations in JavaScript using mathjax
- Version: 1.3.4
- Author: Phillip Lord, Simon Cockell, Paul Schreiber
- Author URI: http://knowledgeblog.org
-
- Copyright 2010. Phillip Lord (phillip.lord@newcastle.ac.uk)
- Simon Cockell (s.j.cockell@newcastle.ac.uk)
- Newcastle University.
- Paul Schreiber (paulschreiber@gmail.com)
+ Version: 1.0.0
+ Author: MasuqaT
+ Author URI: http://masuqat.net/
 */
 
 /*
@@ -32,7 +27,7 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-require_once( dirname( __FILE__ ) . '/mathjax-latex-admin.php' );
+require_once( dirname( __FILE__ ) . '/wp-mathjax-advanced-admin.php' );
 
 class MathJax {
 	static $add_script;
@@ -90,9 +85,15 @@ class MathJax {
 			self::$add_script = true;
 		}
 
+		/*
 		add_shortcode( 'mathjax', array( __CLASS__, 'mathjax_shortcode' ) );
 		add_shortcode( 'nomathjax', array( __CLASS__, 'nomathjax_shortcode' ) );
 		add_shortcode( 'latex', array( __CLASS__, 'latex_shortcode' ) );
+		*/
+
+		add_shortcode( 'mj-i', array( __CLASS__, 'mathjax_inline_shortcode' ) );
+		add_shortcode( 'mj-b', array( __CLASS__, 'mathjax_block_shortcode' ) );
+
 		add_action( 'wp_footer', array( __CLASS__, 'add_script' ) );
 		add_action( 'wp_footer', array( __CLASS__, 'unconditional' ) );
 
@@ -128,7 +129,7 @@ class MathJax {
 	}
 
 	public static function unconditional() {
-		echo '<!-- MathJax Latex Plugin installed';
+		echo '<!-- WP MathJax Advanced Plugin installed';
 		if ( ! self::$add_script ) {
 			echo ': Disabled as no shortcodes on this page';
 		}
@@ -140,6 +141,7 @@ class MathJax {
 		echo ' -->';
 	}
 
+	/*
 	public static function mathjax_shortcode( $atts, $content ) {
 		self::$add_script = true;
 	}
@@ -147,7 +149,7 @@ class MathJax {
 	public static function nomathjax_shortcode( $atts, $content ) {
 		self::$block_script = true;
 	}
-
+	
 	public static function latex_shortcode( $atts, $content ) {
 		self::$add_script = true;
 
@@ -159,6 +161,20 @@ class MathJax {
 		} else if ( 'display' === $shortcode_atts['syntax'] ) {
 			return '\[' . $content . '\]';
 		}
+	}
+	*/
+
+	public static function mathjax_inline_shortcode($attr, $content) {
+		self::$add_script = true;
+
+		return '\(' . $content . '\)';
+	}
+
+	public static function mathjax_block_shortcode($attr, $content)
+	{
+		self::$add_script = true;
+
+		return '\[' . $content . '\]';
 	}
 
 	public static function add_script() {

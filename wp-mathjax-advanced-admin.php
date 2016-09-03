@@ -45,7 +45,7 @@ class MathJax_Latex_Admin {
 	}
 
 	function admin_page_init() {
-		add_options_page( 'MathJax-LaTeX', 'MathJax-LaTeX', 'manage_options', 'kblog-mathjax-latex', array( $this, 'plugin_options_menu' ) );
+		add_options_page( 'WP MathJax Advanced', 'WP MathJax Advanced', 'manage_options', 'kblog-mathjax-latex', array( $this, 'plugin_options_menu' ) );
 	}
 
 	function plugin_options_menu() {
@@ -181,7 +181,7 @@ EOT;
 	function table_head() {
 		?>
 		<div class='wrap' id='mathjax-latex-options'>
-			<h2>Mathjax-Latex by Kblog</h2>
+			<h2>WP MathJax Advanced</h2>
 			<form id='mathjaxlatex' name='mathjaxlatex' action='' method='POST'>
 				<?php wp_nonce_field( 'kblog_mathjax_latex_save_action', 'kblog_mathjax_latex_save_field', true ); ?>
 			<table class='form-table'>
