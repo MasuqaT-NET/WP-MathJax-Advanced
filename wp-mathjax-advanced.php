@@ -1,15 +1,10 @@
 <?php
 /*
- Plugin Name: MathJax-LaTeX
+ Plugin Name: WP MathJax Advanced
  Description: Transform latex equations in JavaScript using mathjax
- Version: 1.3.4
- Author: Phillip Lord, Simon Cockell, Paul Schreiber
- Author URI: http://knowledgeblog.org
-
- Copyright 2010. Phillip Lord (phillip.lord@newcastle.ac.uk)
- Simon Cockell (s.j.cockell@newcastle.ac.uk)
- Newcastle University.
- Paul Schreiber (paulschreiber@gmail.com)
+ Version: 1.0.0
+ Author: MasuqaT
+ Author URI: http://masuqat.net/
 */
 
 /*
@@ -32,7 +27,7 @@
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
 
-require_once( dirname( __FILE__ ) . '/mathjax-latex-admin.php' );
+require_once( dirname( __FILE__ ) . '/wp-mathjax-advanced-admin.php' );
 
 class MathJax {
 	static $add_script;
@@ -86,19 +81,16 @@ class MathJax {
 		register_activation_hook( __FILE__, array( __CLASS__, 'mathjax_install' ) );
 		register_deactivation_hook( __FILE__, array( __CLASS__, 'mathjax_uninstall' ) );
 
-		if ( get_option( 'kblog_mathjax_force_load' ) ) {
+		if ( get_option( 'mjmasuqat_mathjax_force_load' ) ) {
 			self::$add_script = true;
 		}
 
-		add_shortcode( 'mathjax', array( __CLASS__, 'mathjax_shortcode' ) );
-		add_shortcode( 'nomathjax', array( __CLASS__, 'nomathjax_shortcode' ) );
-		add_shortcode( 'latex', array( __CLASS__, 'latex_shortcode' ) );
+		add_shortcode( 'mj-i', array( __CLASS__, 'mathjax_inline_shortcode' ) );
+		add_shortcode( 'mj-b', array( __CLASS__, 'mathjax_block_shortcode' ) );
+
 		add_action( 'wp_footer', array( __CLASS__, 'add_script' ) );
 		add_action( 'wp_footer', array( __CLASS__, 'unconditional' ) );
-
-		if ( get_option( 'kblog_mathjax_use_wplatex_syntax' ) ) {
-			add_filter( 'the_content', array( __CLASS__, 'inline_to_shortcode' ) );
-		}
+		add_action('wp_footer', array(__CLASS__, 'mj_setting'));
 
 		add_filter( 'plugin_action_links', array( __CLASS__, 'mathjax_settings_link' ), 9, 2 );
 
@@ -110,25 +102,21 @@ class MathJax {
 
 	// registers default options
 	public static function mathjax_install() {
-		add_option( 'kblog_mathjax_force_load', false );
-		add_option( 'kblog_mathjax_latex_inline', 'inline' );
-		add_option( 'kblog_mathjax_use_wplatex_syntax', false );
-		add_option( 'kblog_mathjax_use_cdn', true );
-		add_option( 'kblog_mathjax_custom_location', false );
-		add_option( 'kblog_mathjax_config', 'default' );
+		add_option( 'mjmasuqat_mathjax_force_load', false );
+		add_option( 'mjmasuqat_mathjax_use_cdn', true );
+		add_option( 'mjmasuqat_mathjax_custom_location', false );
+		add_option( 'mjmasuqat_mathjax_config', 'default' );
 	}
 
 	public static function mathjax_uninstall() {
-		delete_option( 'kblog_mathjax_force_load' );
-		delete_option( 'kblog_mathjax_latex_inline' );
-		delete_option( 'kblog_mathjax_use_wplatex_syntax' );
-		delete_option( 'kblog_mathjax_use_cdn' );
-		delete_option( 'kblog_mathjax_custom_location' );
-		delete_option( 'kblog_mathjax_config' );
+		delete_option( 'mjmasuqat_mathjax_force_load' );
+		delete_option( 'mjmasuqat_mathjax_use_cdn' );
+		delete_option( 'mjmasuqat_mathjax_custom_location' );
+		delete_option( 'mjmasuqat_mathjax_config' );
 	}
 
 	public static function unconditional() {
-		echo '<!-- MathJax Latex Plugin installed';
+		echo '<!-- WP MathJax Advanced Plugin installed';
 		if ( ! self::$add_script ) {
 			echo ': Disabled as no shortcodes on this page';
 		}
@@ -140,25 +128,45 @@ class MathJax {
 		echo ' -->';
 	}
 
-	public static function mathjax_shortcode( $atts, $content ) {
-		self::$add_script = true;
-	}
+	const INLINE_START	= '%%$%';
+	const INLINE_END	= '%$%%';
 
-	public static function nomathjax_shortcode( $atts, $content ) {
-		self::$block_script = true;
-	}
+	const BLOCK_START	= '##$#';
+	const BLOCK_END		= '#$##';
 
-	public static function latex_shortcode( $atts, $content ) {
+	public static function mathjax_inline_shortcode($attr, $content) {
 		self::$add_script = true;
 
-		// this gives us an optional "syntax" attribute, which defaults to "inline", but can also be "display"
-		$shortcode_atts = shortcode_atts( array( 'syntax' => get_option( 'kblog_mathjax_latex_inline' ) ), $atts );
-
-		if ( 'inline' === $shortcode_atts['syntax'] ) {
-			return '\(' . $content . '\)';
-		} else if ( 'display' === $shortcode_atts['syntax'] ) {
-			return '\[' . $content . '\]';
+		if(empty($content)) {
+			return '[mj-i]';
 		}
+
+		return self::INLINE_START . $content . self::INLINE_END;
+	}
+
+	public static function mathjax_block_shortcode($attr, $content)
+	{
+		self::$add_script = true;
+
+		if(empty($content)){
+			return '[mj-b]';
+		}
+
+		return self::BLOCK_START . $content . self::BLOCK_END;
+	}
+
+	public static function mj_setting()
+	{
+		echo '
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+		tex2jax: {
+			inlineMath	:[[ \'' . self::INLINE_START . '\', \'' . self::INLINE_END . '\']],
+			displayMath	:[[ \'' . self::BLOCK_START . '\', \'' . self::BLOCK_END . '\']]
+		}
+	});
+</script>
+';
 	}
 
 	public static function add_script() {
@@ -171,53 +179,21 @@ class MathJax {
 		}
 
 		// initialise option for existing MathJax-LaTeX users
-		if ( get_option( 'kblog_mathjax_use_cdn' ) || ! get_option( 'kblog_mathjax_custom_location' ) ) {
+		if ( get_option( 'mjmasuqat_mathjax_use_cdn' ) || ! get_option( 'mjmasuqat_mathjax_custom_location' ) ) {
 			$mathjax_location = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js';
 		} else {
-			$mathjax_location = get_option( 'kblog_mathjax_custom_location' );
+			$mathjax_location = get_option( 'mjmasuqat_mathjax_custom_location' );
 		}
 
-		$mathjax_url = $mathjax_location . '?config=' . get_option( 'kblog_mathjax_config' );
+		$mathjax_url = $mathjax_location . '?config=' . get_option( 'mjmasuqat_mathjax_config' );
 
 		wp_enqueue_script( 'mathjax', $mathjax_url, false, '1.2.1', false );
-	}
-
-	public static function inline_to_shortcode( $content ) {
-		if ( false === strpos( $content, '$latex' ) ) {
-			return $content;
-		}
-
-		self::$add_script = true;
-
-		return preg_replace_callback( '#\$latex[= ](.*?[^\\\\])\$#', array( __CLASS__, 'inline_to_shortcode_callback' ), $content );
-	}
-
-	public static function inline_to_shortcode_callback( $matches ) {
-
-		//
-		// Also support wp-latex syntax. This includes the ability to set background and foreground
-		// colour, which we can ignore.
-		//
-
-		if ( preg_match( '/.+((?:&#038;|&amp;)s=(-?[0-4])).*/i', $matches[1], $s_matches ) ) {
-			$matches[1] = str_replace( $s_matches[1], '', $matches[1] );
-		}
-
-		if ( preg_match( '/.+((?:&#038;|&amp;)fg=([0-9a-f]{6})).*/i', $matches[1], $fg_matches ) ) {
-			$matches[1] = str_replace( $fg_matches[1], '', $matches[1] );
-		}
-
-		if ( preg_match( '/.+((?:&#038;|&amp;)bg=([0-9a-f]{6})).*/i', $matches[1], $bg_matches ) ) {
-			$matches[1] = str_replace( $bg_matches[1], '', $matches[1] );
-		}
-
-		return "[latex]{$matches[1]}[/latex]";
 	}
 
 	// add a link to settings on the plugin management page
 	public static function mathjax_settings_link( $links, $file ) {
 		if ( 'mathjax-latex/mathjax-latex.php' === $file && function_exists( 'admin_url' ) ) {
-			$settings_link = '<a href="' . esc_url( admin_url( 'options-general.php?page=kblog-mathjax-latex' ) ) . '">' . esc_html__( 'Settings' ) . '</a>';
+			$settings_link = '<a href="' . esc_url( admin_url( 'options-general.php?page=mjmasuqat-mathjax-latex' ) ) . '">' . esc_html__( 'Settings' ) . '</a>';
 			array_unshift( $links, $settings_link );
 		}
 		return $links;
